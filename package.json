@@ -12,6 +12,7 @@
     "ejs": "^3.0.1",
     "express": "^4.17.1",
     "mongoose": "^5.9.1",
+    "qrcode": "^1.5.4",
     "shortid": "^2.2.15"
   },
   "devDependencies": {

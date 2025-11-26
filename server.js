@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const mongoose = require('mongoose')
 const ShortUrl = require('./models/shortUrl')
+const QRCode = require('qrcode')
 const app = express()
 
 mongoose.connect('mongodb+srv://user1:navo%401234@aksh.4s33zs8.mongodb.net/?appName=aksh', {
@@ -18,6 +19,28 @@ app.use(express.json())
 // Serve static assets (CSS, JS, images) from the `public` directory
 // located next to this server file.
 app.use(express.static(path.join(__dirname, 'public')))
+
+// Helper function to generate QR code as base64 data URL
+async function generateQRCode(url) {
+  try {
+    console.log('Generating QR code for:', url)
+    const qrImage = await QRCode.toDataURL(url, {
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      width: 200,
+      margin: 1,
+      color: {
+        dark: '#1976d2',
+        light: '#f8f9fa'
+      }
+    })
+    console.log('QR code generated successfully, length:', qrImage.length)
+    return qrImage
+  } catch (err) {
+    console.error('Error generating QR code:', err)
+    return null
+  }
+}
 
 app.get('/', async (req, res) => {
   const shortUrls = await ShortUrl.find().sort({ createdAt: -1 })
@@ -45,11 +68,30 @@ app.post('/api/shortUrls', async (req, res) => {
   try {
     const obj = { full: req.body.full }
     if (req.body.short) obj.short = req.body.short
+    
+    console.log('API: Creating short URL:', obj)
+    // Create the short URL first to get the generated short code
     const created = await ShortUrl.create(obj)
+    console.log('API: Short URL created, ID:', created._id, 'Short:', created.short)
+    
+    // Generate QR code for the TARGET URL (not the short URL)
+    console.log('API: Generating QR code for target URL:', created.full)
+    const qrImage = await generateQRCode(created.full)
+    
+    // Update with QR code
+    if (qrImage) {
+      console.log('API: Saving QR code to database')
+      created.qrImage = qrImage
+      await created.save()
+      console.log('API: QR code saved successfully')
+    } else {
+      console.warn('API: QR code generation returned null')
+    }
+    
     res.status(201).json(created)
   } catch (err) {
     if (err && err.code === 11000) return res.status(409).json({ error: 'short code already in use' })
-    console.error(err)
+    console.error('API: Error creating short URL:', err)
     res.status(500).json({ error: 'internal error' })
   }
 })
@@ -64,12 +106,30 @@ app.post('/shortUrls', async (req, res) => {
   try {
     const obj = { full: req.body.fullUrl }
     if (req.body.customCode && req.body.customCode.trim() !== '') obj.short = req.body.customCode.trim()
-    await ShortUrl.create(obj)
+    
+    console.log('Creating short URL:', obj)
+    const created = await ShortUrl.create(obj)
+    console.log('Short URL created, ID:', created._id, 'Short:', created.short)
+    
+    // Generate QR code for the TARGET URL (not the short URL)
+    console.log('Generating QR code for target URL:', created.full)
+    const qrImage = await generateQRCode(created.full)
+    
+    // Update with QR code
+    if (qrImage) {
+      console.log('Saving QR code to database')
+      created.qrImage = qrImage
+      await created.save()
+      console.log('QR code saved successfully')
+    } else {
+      console.warn('QR code generation returned null')
+    }
+    
     res.redirect('/')
   } catch (err) {
     // handle duplicate short code
     if (err && err.code === 11000) return res.redirect('/?error=custom_taken')
-    console.error(err)
+    console.error('Error creating short URL:', err)
     res.redirect('/?error=server_error')
   }
 })

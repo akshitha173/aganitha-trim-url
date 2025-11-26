@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pap3YVQmK6lf8x5XKzYvW1qQqQh6sG3qZb6Yg1uH3Z0FvG+8s8VQxq5QYgk6f8JmZ6V5QZJk1K5Jc5m3q1YQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-pap3YV" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="/css/styles.css?v=<%= Date.now() %>">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <!-- QR Code Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
   <title>Document</title>
 </head>
 <body>
@@ -81,14 +80,28 @@
                   <% } %>
                 </div>
               </td>
+
             <td class="align-middle" style="max-width:480px;">
               <a href="<%= shortUrl.full %>" target="_blank" rel="noopener noreferrer" class="d-inline-block text-truncate" style="max-width:420px;"><%= shortUrl.full %></a>
             </td>
-            <td class="align-middle qr-cell text-center" style="width:120px;">
-              <div class="qr-code-inline" data-url="<%= shortUrl.full %>" data-id="qr-<%= shortUrl._id %>"></div>
+
+            <!-- UPDATED QR CODE SECTION -->
+            <td class="align-middle text-center" style="width:120px;">
+              <% if (shortUrl.qrImage) { %>
+                <img 
+                  src="<%= shortUrl.qrImage %>"
+                  width="100"
+                  height="100"
+                  style="border:2px solid #1976d2; padding:4px; background:#f8f9fa; border-radius:6px;" 
+                />
+              <% } else { %>
+                <span>No QR</span>
+              <% } %>
             </td>
+
             <td class="align-middle text-center" style="width:90px;"><span class="badge badge-info"><%= shortUrl.clicks %></span></td>
             <td class="align-middle text-nowrap" style="width:180px;"><%= shortUrl.lastClicked ? (new Date(shortUrl.lastClicked)).toLocaleString() : '—' %></td>
+
             <td class="align-middle text-right" style="width:120px;">
               <form action="/shortUrls/<%= shortUrl._id %>/delete" method="POST" style="display:inline" onsubmit="return confirmDelete(event)">
                 <button class="btn btn-sm btn-danger" type="submit"><i class="fa fa-trash"></i> Delete</button>
@@ -106,155 +119,78 @@
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
   <script>
-    // Main copy button functionality
-    document.getElementById('mainCopyBtn') && document.getElementById('mainCopyBtn').addEventListener('click', function (e) {
-      e.preventDefault()
-      var url = window.location.href
-      navigator.clipboard.writeText(url).then(function () {
-        var btn = document.getElementById('mainCopyBtn')
-        btn.innerHTML = '<i class="fa fa-check"></i> Copied!'
-        setTimeout(function () { btn.innerHTML = '<i class="fa fa-copy"></i> copy' }, 1500)
-      })
-    })
-
-    // Toggle add form visibility (removed - replaced Add button with Search)
-
-    // Search/filter functionality (shared handler for input + button)
-    function filterRows(q) {
-      var query = (q || '').toLowerCase()
-      var rows = document.querySelectorAll('#linksTable tbody tr')
-      rows.forEach(function (r) {
-        var code = (r.getAttribute('data-code') || '').toLowerCase()
-        var url = (r.getAttribute('data-url') || '').toLowerCase()
-        if (code.indexOf(query) !== -1 || url.indexOf(query) !== -1) {
-          r.style.display = ''
-        } else {
-          r.style.display = 'none'
+    // Copy Button
+    var lastCopiedBtn = null;
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (lastCopiedBtn && lastCopiedBtn !== btn) {
+          lastCopiedBtn.innerHTML = '<i class="fa fa-copy"></i> copy';
         }
-      })
+
+        var short = btn.getAttribute('data-short');
+        var base = '<%= baseUrl || "" %>';
+        var full = base ? base.replace(/\/$/, '') + '/' + short : window.location.origin + '/' + short;
+
+        navigator.clipboard.writeText(full).then(function () {
+          btn.innerHTML = '<i class="fa fa-check"></i> Copied';
+          lastCopiedBtn = btn;
+        });
+      });
+    });
+
+    // Search
+    function filterRows(q) {
+      var query = (q || '').toLowerCase();
+      var rows = document.querySelectorAll('#linksTable tbody tr');
+      rows.forEach(function (r) {
+        var code = (r.getAttribute('data-code') || '').toLowerCase();
+        var url = (r.getAttribute('data-url') || '').toLowerCase();
+
+        r.style.display = (code.indexOf(query) !== -1 || url.indexOf(query) !== -1) ? '' : 'none';
+      });
     }
 
-    // live filtering as you type
-    var searchInput = document.getElementById('search')
-    searchInput && searchInput.addEventListener('input', function (e) { filterRows(e.target.value) })
+    document.getElementById('search').addEventListener('input', function (e) {
+      filterRows(e.target.value);
+    });
 
-    // search button triggers same filter
-    var searchBtn = document.getElementById('searchBtn')
-    searchBtn && searchBtn.addEventListener('click', function (e) { filterRows(searchInput.value) })
-
-    // allow Enter key to trigger search button
-    searchInput && searchInput.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        searchBtn && searchBtn.click()
-      }
-    })
-
-    // Copy-to-clipboard for short URLs
-    var lastCopiedBtn = null // track which button is in "Copied" state
-    document.querySelectorAll('.copy-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        // reset the previous "Copied" button back to "copy"
-        if (lastCopiedBtn && lastCopiedBtn !== btn) {
-          lastCopiedBtn.innerHTML = '<i class="fa fa-copy"></i> copy'
-        }
-        
-        var short = btn.getAttribute('data-short')
-        var base = '<%= baseUrl || "" %>'
-        var full = base ? base.replace(/\/$/, '') + '/' + short : window.location.origin + '/' + short
-        navigator.clipboard.writeText(full).then(function () {
-          // show check icon with text and keep it until another copy is clicked
-          btn.innerHTML = '<i class="fa fa-check"></i> Copied'
-          lastCopiedBtn = btn // mark this button as the current "Copied" one
-        }).catch(function () {
-          // on error, show a short fallback message but still stay "Copied" until next click
-          btn.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Error'
-          lastCopiedBtn = btn
-        })
-      })
-    })
+    document.getElementById('searchBtn').addEventListener('click', function () {
+      filterRows(document.getElementById('search').value);
+    });
 
     // Confirm delete
     function confirmDelete(e) {
       if (!confirm('Delete this short link? This action cannot be undone.')) {
-        e.preventDefault()
-        return false
+        e.preventDefault();
+        return false;
       }
-      return true
+      return true;
     }
 
-    // Generate inline QR codes for each row
-    document.querySelectorAll('.qr-code-inline').forEach(function (container) {
-      var url = container.getAttribute('data-url')
-      var id = container.getAttribute('data-id')
-      
-      // Create QR code pointing to the target YouTube URL (not the short URL)
-      new QRCode(container, {
-        text: url,  // This is the full YouTube URL
-        width: 100,
-        height: 100,
-        correctLevel: QRCode.CorrectLevel.H,
-        colorDark: '#1976d2',
-        colorLight: '#fff'
-      })
-      
-      // Style the canvas for better appearance
-      var canvas = container.querySelector('canvas')
-      if (canvas) {
-        canvas.style.borderRadius = '6px'
-        canvas.style.padding = '4px'
-        canvas.style.backgroundColor = '#f8f9fa'
-        canvas.style.border = '2px solid #1976d2'
-      }
-    })
+    // Export CSV
+    document.getElementById('exportBtn').addEventListener('click', function () {
+      var rows = document.querySelectorAll('#linksTable tbody tr');
+      var csv = 'Short Code,Target URL,Clicks,Last Clicked\n';
 
-
-    // Export to CSV
-    document.getElementById('exportBtn') && document.getElementById('exportBtn').addEventListener('click', function () {
-      var rows = document.querySelectorAll('#linksTable tbody tr')
-      var csv = 'Short Code,Target URL,Clicks,Last Clicked\n'
-      
       rows.forEach(function (row) {
-        if (row.style.display !== 'none') { // only export visible rows
-          var code = row.getAttribute('data-code')
-          var url = row.getAttribute('data-url')
-          var clicks = row.querySelector('td:nth-child(3)').innerText.trim()
-          var lastClicked = row.querySelector('td:nth-child(4)').innerText.trim()
-          
-          csv += '\"' + code + '\",\"' + url + '\",' + clicks + ',\"' + lastClicked + '\"\n'
+        if (row.style.display !== 'none') {
+          var code = row.getAttribute('data-code');
+          var url = row.getAttribute('data-url');
+          var clicks = row.querySelector('td:nth-child(3)').innerText.trim();
+          var lastClicked = row.querySelector('td:nth-child(4)').innerText.trim();
+
+          csv += `"${code}","${url}",${clicks},"${lastClicked}"\n`;
         }
-      })
-      
-      // Trigger download
-      var blob = new Blob([csv], { type: 'text/csv' })
-      var link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = 'shortlinks_' + new Date().toISOString().slice(0,10) + '.csv'
-      link.click()
-    })
+      });
 
-    // Sort table by clicks (descending)
-    function sortByClicks() {
-      var table = document.getElementById('linksTable')
-      var rows = Array.from(table.querySelectorAll('tbody tr'))
-      rows.sort(function (a, b) {
-        var clicksA = parseInt(a.querySelector('td:nth-child(3)').innerText) || 0
-        var clicksB = parseInt(b.querySelector('td:nth-child(3)').innerText) || 0
-        return clicksB - clicksA
-      })
-      
-      var tbody = table.querySelector('tbody')
-      rows.forEach(function (row) { tbody.appendChild(row) })
-    }
-
-    // Add keyboard shortcut: Ctrl+E for export
-    document.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault()
-        document.getElementById('exportBtn').click()
-      }
-    })
+      var blob = new Blob([csv], { type: 'text/csv' });
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'shortlinks_' + new Date().toISOString().slice(0, 10) + '.csv';
+      link.click();
+    });
 
   </script>
 </body>
