@@ -1,0 +1,192 @@
+
+/* Refreshed theme inspired by provided screenshot — purple gradient hero + soft cards */
+:root{
+  --bg-top: #cce7ff;
+  --bg-bottom: #99ccff;
+  --primary-500: #2196f3;
+  --primary-600: #1976d2;
+  --accent: #ff7eb6;
+  --muted: #f7f9fb;
+  --card-border: rgba(33,150,243,0.15);
+  --shadow-1: 0 12px 28px rgba(25,118,210,0.15);
+  --shadow-2: 0 8px 20px rgba(25,118,210,0.1);
+  --text: #1a3a52;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  color:var(--text);
+  background: linear-gradient(135deg, #cce7ff 0%, #99ccff 50%, #6bb3ff 100%) fixed;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Hero header */
+header.hero{
+  text-align:center;
+  padding:3.5rem 1rem 1.25rem;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+header.hero h1{
+  margin:0 0 0.25rem;
+  font-size:2.25rem;
+  color:var(--primary-600);
+  letter-spacing: -0.5px;
+  text-align:center;
+}
+header.hero p{
+  margin:0;
+  color:#66788a;
+}
+
+/* Central container with comfortable width */
+.container{
+  max-width:1100px;
+  margin:2rem auto 3rem;
+  padding:0 1rem;
+}
+
+/* Card style used for the add form and table wrapper */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.99), rgba(255,255,255,0.97));
+  border-radius:12px;
+  border:1px solid var(--card-border);
+  box-shadow:var(--shadow-1);
+  padding:2rem;
+  margin-bottom:2rem;
+}
+
+/* Add form layout */
+#addForm{ display:flex; flex-direction:column; gap:1rem; align-items:stretch; background:transparent; padding:1.5rem 0; border-radius:10px; margin-bottom:2rem; }
+#fullUrl, #customCode, #search{ border-radius:8px; padding:0.65rem 0.9rem; border:1px solid rgba(33,150,243,0.2); }
+#fullUrl:focus, #customCode:focus, #search:focus{ outline:none; border-color:var(--primary-500); box-shadow:0 0 0 3px rgba(33,150,243,0.1); }
+
+/* Primary gradient button */
+.btn-primary{
+  color:#fff;
+  border:none;
+  padding:0.7rem 1.2rem;
+  border-radius:6px;
+  background:linear-gradient(90deg,var(--primary-500),var(--primary-600));
+  box-shadow: 0 4px 12px rgba(33,150,243,0.3);
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.3s ease;
+}
+.btn-primary:hover{ transform:translateY(-2px); box-shadow: 0 6px 16px rgba(33,150,243,0.4); }
+.btn-primary:active{ transform:translateY(0px); }
+
+/* Search bar */
+#search{ padding:0.6rem 0.9rem; border:1px solid rgba(34,34,34,0.06); }
+#search:focus{ outline:none; box-shadow:0 6px 18px rgba(95,51,209,0.08); border-color:var(--primary-500); }
+
+/* Table header gradient and compact rows */
+.table thead th{
+  background: linear-gradient(90deg, #1976d2, #2196f3);
+  color: #fff;
+  font-weight:700;
+  padding:1rem 1rem;
+  border-bottom:2px solid rgba(33,150,243,0.3);
+}
+.table tbody td{ vertical-align:middle; padding:0.95rem 1rem; }
+.table tbody tr{ background:rgba(255,255,255,0.7); border-bottom:1px solid rgba(33,150,243,0.2); transition:all 0.3s ease; }
+.table tbody tr:hover{ background:rgba(255,255,255,0.95); box-shadow:0 2px 8px rgba(25,118,210,0.1); }
+
+/* Prevent copy button overlapping by reserving space for short-code column */
+.table tbody td:first-child,
+.table thead th:first-child{
+  width:260px; /* reserve space for short code + copy button */
+  max-width:300px;
+}
+
+/* Short code cell internals (scoped) */
+.short-cell .short-cell-inner{ display:flex; align-items:center; gap:0.75rem; }
+.short-cell .short-code-link{ flex:0 0 auto; margin-right:0.35rem; color:var(--primary-600); font-weight:700; }
+
+/* Make copy button non-shrinking and compact to avoid overlap */
+.short-cell .copy-btn{ flex:0 0 auto; min-width:68px; padding:0.36rem 0.7rem; margin-left:0; }
+
+/* Ensure target URL column truncates and has left padding so it won't be covered */
+.table tbody td:nth-child(2){ padding-left:1rem; }
+.table tbody td:nth-child(2) a{ display:inline-block; max-width:520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Reserve space for Actions (last) column so buttons are not cut off */
+.table thead th:last-child,
+.table tbody td:last-child{
+  width:160px;
+  min-width:140px;
+  text-align:right;
+}
+
+/* Ensure action buttons stack nicely and don't wrap */
+.table tbody td:last-child .btn{ white-space:nowrap; }
+
+/* Keep horizontal scrolling available on tiny viewports */
+.table-responsive{ overflow-x:auto; }
+
+/* Fallback for very narrow screens: hide inline copy button and show actions copy */
+@media (max-width: 720px){
+  .short-cell .copy-btn{ display:none; }
+  .table tbody td:last-child .copy-btn-mobile{ display:inline-block; }
+}
+
+.h1-copy-wrapper{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:0.75rem;
+  flex-wrap:wrap;
+  margin-bottom:2rem;
+}
+.h1-copy-wrapper h1{
+  margin:0;
+  font-size:2.5rem;
+  font-weight:800;
+  color:var(--primary-600);
+}
+
+/* Small action buttons */
+.btn-outline-secondary{ border-radius:6px; border:2px solid var(--primary-500); padding:0.4rem 0.8rem; background:#fff; margin-left:0.45rem; color:var(--primary-600); font-weight:600; transition:all 0.3s ease; }
+.btn-outline-secondary:hover{ background:var(--primary-500); color:#fff; transform:translateY(-2px); }
+.copy-btn{ border-radius:6px; border:2px solid var(--primary-500); padding:0.4rem 0.8rem; background:#fff; margin-left:0.45rem; color:var(--primary-500); font-weight:600; transition:all 0.3s ease; cursor:pointer; }
+.copy-btn:hover{ background:var(--primary-500); color:#fff; transform:translateY(-2px); }
+.btn-danger{ border-radius:6px; font-weight:600; transition:all 0.3s ease; }
+.btn-danger:hover{ transform:translateY(-2px); }
+.btn-success{ border-radius:6px; font-weight:600; background:linear-gradient(90deg,#4caf50,#45a049); border:none; transition:all 0.3s ease; }
+.btn-success:hover{ transform:translateY(-2px); }
+
+/* Responsive tweaks */
+@media (max-width: 768px){
+  header.hero h1{ font-size:1.6rem }
+  #addForm{ flex-direction:column; align-items:stretch }
+  .links-wrapper .table thead th{ display:none }
+}
+
+/* Utility */
+.text-truncate{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Professional features styling */
+.qr-cell{ padding:0.5rem !important; }
+.qr-code-inline{ display:inline-block; border:2px solid var(--primary-500); border-radius:8px; padding:6px; background:#f8f9fa; box-shadow:0 2px 8px rgba(25,118,210,0.15); transition:all 0.3s ease; cursor:pointer; }
+.qr-code-inline:hover{ box-shadow:0 4px 16px rgba(25,118,210,0.25); transform:scale(1.05); }
+.qr-code-inline canvas{ display:block; border-radius:4px; }
+
+.qr-btn{ padding:0.3rem 0.5rem; margin-right:0.3rem; }
+.qr-btn:hover{ background-color:#6c757d; color:#fff; }
+
+/* Export button styling */
+#exportBtn{ margin-left:0.5rem; }
+#exportBtn:hover{ background-color:#17a2b8; color:#fff; }
+
+/* Input group styling */
+.input-group{ border-radius:6px; overflow:hidden; box-shadow:0 2px 8px rgba(33,150,243,0.1); }
+.input-group .form-control:focus{ box-shadow:0 0 0 3px rgba(33,150,243,0.15); border-color:var(--primary-500); }
+
+/* Action buttons group */
+.table tbody td:last-child { display:flex; gap:0.3rem; justify-content:flex-end; align-items:center; flex-wrap:wrap; }
+
